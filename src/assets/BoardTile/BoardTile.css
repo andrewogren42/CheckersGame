@@ -6,12 +6,13 @@
     background-color: #eeeed2;
 }
 
-.tileDark, .tileLight{
+.tileDark, .tileLight, .clicked{
     height: 100%;
     width: 12.5%;
     display: flex;
     align-items: center;
     justify-content: center;
+    border: none;
 }
 
 .GoodPiece, .EvilPiece {
@@ -29,4 +30,8 @@
 .EvilPiece{
     background-color: black;
     border: 3px solid #3d3f42;
+}
+
+.clicked{
+    background-color: purple;
 }
