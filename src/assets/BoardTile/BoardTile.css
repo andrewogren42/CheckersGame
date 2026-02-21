@@ -1,0 +1,32 @@
+.tileDark{
+    background-color: #769656;
+}
+
+.tileLight{
+    background-color: #eeeed2;
+}
+
+.tileDark, .tileLight{
+    height: 100%;
+    width: 12.5%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.GoodPiece, .EvilPiece {
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+}
+
+.GoodPiece{
+    background-color: #d32f2f;
+    border: 3px solid #b71c1c;
+}
+
+.EvilPiece{
+    background-color: black;
+    border: 3px solid #3d3f42;
+}
