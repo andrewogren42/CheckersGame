@@ -2,7 +2,7 @@ import React from "react";
 import BoardTile from "../BoardTile/BoardTile";
 import "./BoardRow.css"
 
-function BoardRow({ rowIndex, clicked, clickTile, pieces}) {
+function BoardRow({ rowIndex, clicked, clickTile, pieces, moves }) {
     
 
     return (
@@ -16,6 +16,7 @@ function BoardRow({ rowIndex, clicked, clickTile, pieces}) {
                 clicked={clicked}
                 clickTile={clickTile}
                 pieces={pieces}
+                moves={moves}
             />
             ))}
         </div>

@@ -13,33 +13,68 @@ function Board() {
                         ]
 
     const [clicked, setClicked] = useState(null);
-    const [pieces, setPieces] = useState(startingTiles)
+    const [pieces, setPieces] = useState(startingTiles);
+    const [moves, setMoves] = useState([]);
 
     const clickTile = (row, col) => {
+        const piece = pieces.findIndex(p => p.r === row && p.c === col);
+        console.log(piece)
+        if (piece === -1 && moves.length === 0) {
+            setClicked({ row, col });
+            setMoves([]);
+            console.log("Piece is -1");
+            return;
+        }
         if(!clicked) {
             setClicked({ row, col});
+            if (piece !== -1) {
+                const move = legalMoves(row, col, false, piece);
+                console.log(`Working "${move}"`)
+                setMoves(move)
+            }
             return;
         }
         if(clicked.row === row && clicked.col === col) {
             setClicked(null);
+            setMoves([]);
+            console.log("Unclicking tile");
         } else {
-            const piece = pieces.findIndex(p => p.r === clicked.row && p.c === clicked.col);
-            if (piece !== -1 &&
-                col < 8 && col > -1 &&
-                row < 8 && row > -1 &&
-                Math.abs(row - clicked.row) === 1 && 
-                Math.abs(col - clicked.col) === 1){
-                    const updatedPieces = [...pieces];
-                    updatedPieces[piece] = {
-                        ...updatedPieces[piece],
-                        r:row,
-                        c:col
-                    };
-                    setPieces(updatedPieces);
+            console.log(`Made it "${row, col, clicked.row, clicked.col}"`)
+            if (moves?.some(m => m[0] === row && m[1] === col)){
+                const activePieceIndex = pieces.findIndex(p => p.r === clicked.row && p.c === clicked.col);
+
+                const updatedPieces = [...pieces];
+                updatedPieces[activePieceIndex] = {
+                    ...updatedPieces[activePieceIndex],
+                    r:row,
+                    c:col
+                };
+                console.log("Updating Pieces")
+                setPieces(updatedPieces);
+                setClicked({ row, col });
+                const move = legalMoves(row, col, true, activePieceIndex);
+                setMoves(move);
             }
-            setClicked({ row, col });
+            else {
+                console.log("Updating moves")
+                setClicked({ row, col });
+                const move = legalMoves(row, col, true, piece);
+                setMoves(move);
+            }
         }
     };
+
+    const legalMoves = (row, col, moving, piece) => {
+        console.log(piece)
+        if (piece === -1) return [];
+        if (!moving || moving) {
+                if (pieces[piece].team === 'GoodPiece') {
+                    return [[row - 1, col - 1],[row - 1, col + 1]]
+                } else {
+                    return [[row + 1, col - 1],[row + 1, col + 1]]
+                }
+            } 
+        }
 
 
     return (
@@ -51,6 +86,7 @@ function Board() {
                     clicked={clicked}
                     clickTile={clickTile}
                     pieces={pieces}
+                    moves={moves}
                 />
             ))}
             

@@ -2,7 +2,7 @@ import React from "react";
 import "./BoardTile.css";
 import CheckerPiece from "../CheckerPiece/CheckerPiece";
 
-function BoardTile({row, col, isRowGood, clicked, clickTile, pieces}) {
+function BoardTile({row, col, isRowGood, clicked, clickTile, pieces, moves }) {
 
     const isDark = (row + col) % 2 === 1;
     
@@ -12,6 +12,8 @@ function BoardTile({row, col, isRowGood, clicked, clickTile, pieces}) {
     let pieceClass = "";
     if (hasPiece) {
         pieceClass = hasPiece.team
+    } else if (moves?.some(m => m[0] === row && m[1] === col)) {
+        pieceClass = "legalMove";
     }
 
 
