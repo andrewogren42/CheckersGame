@@ -11,7 +11,7 @@ function BoardTile({row, col, isRowGood, clicked, clickTile, pieces, moves }) {
 
     let pieceClass = "";
     if (hasPiece) {
-        pieceClass = hasPiece.team
+        pieceClass = hasPiece.team;
     } else if (moves?.some(m => m[0] === row && m[1] === col)) {
         pieceClass = "legalMove";
     }
@@ -22,7 +22,9 @@ function BoardTile({row, col, isRowGood, clicked, clickTile, pieces, moves }) {
         <button 
             className={active ? "clicked" : isDark ? "tileDark" : "tileLight"}
             onClick={() => clickTile(row, col)}>
-            <div className={pieceClass}></div>
+            <div className={pieceClass}>
+                {hasPiece?.king && <div className="star"></div> }
+            </div>
         </button>
     );
 }

@@ -4,12 +4,13 @@ import "./Board.css";
 
 function Board() {
 
-    const startingTiles = [ { r: 0, c: 1, team: 'EvilPiece' }, { r: 0, c: 3, team: 'EvilPiece' }, { r: 0, c: 5, team: 'EvilPiece' }, { r: 0, c: 7, team: 'EvilPiece' },
-                            { r: 1, c: 0, team: 'EvilPiece' }, { r: 1, c: 2, team: 'EvilPiece' }, { r: 1, c: 4, team: 'EvilPiece' }, { r: 1, c: 6, team: 'EvilPiece' },
-                            { r: 2, c: 1, team: 'EvilPiece' }, { r: 2, c: 3, team: 'EvilPiece' }, { r: 2, c: 5, team: 'EvilPiece' }, { r: 2, c: 7, team: 'EvilPiece' },
-                            { r: 5, c: 0, team: 'GoodPiece' }, { r: 5, c: 2, team: 'GoodPiece' }, { r: 5, c: 4, team: 'GoodPiece' }, { r: 5, c: 6, team: 'GoodPiece' },
-                            { r: 6, c: 1, team: 'GoodPiece' }, { r: 6, c: 3, team: 'GoodPiece' }, { r: 6, c: 5, team: 'GoodPiece' }, { r: 6, c: 7, team: 'GoodPiece' },
-                            { r: 7, c: 0, team: 'GoodPiece' }, { r: 7, c: 2, team: 'GoodPiece' }, { r: 7, c: 4, team: 'GoodPiece' }, { r: 7, c: 6, team: 'GoodPiece' },
+    const startingTiles = [ 
+            { r: 0, c: 1, team: 'EvilPiece', king: false }, { r: 0, c: 3, team: 'EvilPiece', king: false }, { r: 0, c: 5, team: 'EvilPiece', king: false }, { r: 0, c: 7, team: 'EvilPiece', king: false },
+            { r: 1, c: 0, team: 'EvilPiece', king: false }, { r: 1, c: 2, team: 'EvilPiece', king: false }, { r: 1, c: 4, team: 'EvilPiece', king: false }, { r: 1, c: 6, team: 'EvilPiece', king: false },
+            { r: 2, c: 1, team: 'EvilPiece', king: false }, { r: 2, c: 3, team: 'EvilPiece', king: false }, { r: 2, c: 5, team: 'EvilPiece', king: false }, { r: 2, c: 7, team: 'EvilPiece', king: false },
+            { r: 5, c: 0, team: 'GoodPiece', king: false }, { r: 5, c: 2, team: 'GoodPiece', king: false }, { r: 5, c: 4, team: 'GoodPiece', king: false }, { r: 5, c: 6, team: 'GoodPiece', king: false },
+            { r: 6, c: 1, team: 'GoodPiece', king: false }, { r: 6, c: 3, team: 'GoodPiece', king: false }, { r: 6, c: 5, team: 'GoodPiece', king: false }, { r: 6, c: 7, team: 'GoodPiece', king: false },
+            { r: 7, c: 0, team: 'GoodPiece', king: false }, { r: 7, c: 2, team: 'GoodPiece', king: false }, { r: 7, c: 4, team: 'GoodPiece', king: false }, { r: 7, c: 6, team: 'GoodPiece', king: false },
                         ]
 
     const [clicked, setClicked] = useState(null);
@@ -42,13 +43,21 @@ function Board() {
             console.log(`Made it "${row, col, clicked.row, clicked.col}"`)
             if (moves?.some(m => m[0] === row && m[1] === col)){
                 const activePieceIndex = pieces.findIndex(p => p.r === clicked.row && p.c === clicked.col);
-
                 const updatedPieces = [...pieces];
-                updatedPieces[activePieceIndex] = {
+                if (row === 0 || row === 7){
+                    updatedPieces[activePieceIndex] = {
                     ...updatedPieces[activePieceIndex],
                     r:row,
-                    c:col
-                };
+                    c:col,
+                    king: true
+                    };
+                } else {
+                    updatedPieces[activePieceIndex] = {
+                        ...updatedPieces[activePieceIndex],
+                        r:row,
+                        c:col
+                    };
+                }
                 console.log("Updating Pieces")
                 setPieces(updatedPieces);
                 setClicked({ row, col });
@@ -67,7 +76,9 @@ function Board() {
     const legalMoves = (row, col, moving, piece) => {
         console.log(piece)
         if (piece === -1) return [];
-        if (!moving || moving) {
+        if (pieces[piece].king) {
+                return [[row - 1, col - 1],[row - 1, col + 1], [row + 1, col - 1],[row + 1, col + 1]]
+        } else {
                 if (pieces[piece].team === 'GoodPiece') {
                     return [[row - 1, col - 1],[row - 1, col + 1]]
                 } else {
