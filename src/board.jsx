@@ -13,44 +13,46 @@ function Board({ pieces, setPieces}) {
 
     const clickTile = (row, col) => {
         const pieceIndex = pieces.findIndex(p => p.r === row && p.c === col);
+        const selectedMove = moves?.some(m => m[0] === row && m[1] === col);
 
-        if (clicked && moves?.some(m => m[0] === row && m[1] === col)) {
-            const lastTile = pieces.findIndex(p => p.r === clicked.row && p.c === clicked.col) ;
-            if (lastTile === -1) return;
-            let updatedPieces = [...pieces];
+        if (clicked && selectedMove) {
+            const movingPiece = pieces.find(p => p.r === clicked.row && p.c === clicked.col);
 
-            if (Math.abs(row - clicked.row) === 2) {
-                const midR = (row + clicked.row) / 2;
-                const midC = (col + clicked.col) / 2;
-                updatedPieces = updatedPieces.filter(p => !(p.r === midR && p.c === midC))
-            }
+            const { path, promoted } = getBestPath(clicked.row, clicked.col, row, col, movingPiece);
 
-            const movingPiece = updatedPieces.findIndex(p => p.r === clicked.row && p.c === clicked.col);
-            const isKing = updatedPieces[movingPiece].king || row === 0 || row ===7;
-            updatedPieces[movingPiece] = { ...updatedPieces[movingPiece], r: row, c: col, king: isKing};
+            let updatedPieces = capturePieces(path);
+            
+            const movingIdx = updatedPieces.findIndex(p => p.r === clicked.row && p.c === clicked.col);
+            
+            updatedPieces[movingIdx] = { 
+                ...movingPiece, 
+                r: row, 
+                c: col, 
+                king: promoted || row === 0 || row === 7 
+            };
 
             setPieces(updatedPieces);
             setClicked(null);
             setMoves([]);
-            return;
         } else if (clicked && row === clicked.row && col === clicked.col) {
             setClicked(null);
             setMoves([]);
         } else if (pieceIndex !== -1) {
             setClicked({ row, col });
-            const move = legalMoves(row, col, pieceIndex, false, []);
-            console.log(move, move.possible)
+            const move = legalMoves(row, col, pieceIndex, false, [], false);
             setMoves(move.possible || []);
         } else {
             setClicked({ row, col });
+            setMoves([]);
         }
     };
 
-    const legalMoves = (row, col, pieceIndex, isChainJump = false, visited = []) => {
+    const legalMoves = (row, col, pieceIndex, isChainJump = false, visited = [], isKingNow = false) => {
 
         if (pieceIndex === -1 || !pieces[pieceIndex]) return { possible: [], type: "none" };
         const currPiece = pieces[pieceIndex];
-        const directions = currPiece.king ? kingDirections : 
+        const effectivelyAKing = currPiece.king || isKingNow;
+        const directions = effectivelyAKing ? kingDirections : 
                      (currPiece.team === "GoodPiece" ? goodDirections : evilDirections);
 
         let jumps = [];
@@ -75,7 +77,10 @@ function Board({ pieces, setPieces}) {
                         
                     const nextVisited = [...visited, victimIndex];
                     jumps.push([jumpR, jumpC]);
-                    const jumpAgain = legalMoves(jumpR, jumpC, pieceIndex, true, nextVisited);
+
+                    const willBecomeKing = (jumpR == 7 || jumpR == 0);
+                    const jumpAgain = legalMoves(jumpR, jumpC, pieceIndex, true, nextVisited, (willBecomeKing || effectivelyAKing));
+
                     if (jumpAgain.possible.length > 0) {
                         jumps.push(...jumpAgain.possible);
                     }
@@ -92,6 +97,57 @@ function Board({ pieces, setPieces}) {
         return jumps.length > 0 ? { possible: jumps, type: "jump"} : { possible: slides, type: "slide"};
     };
 
+const getBestPath = (startR, startC, targetR, targetC, currentPiece) => {
+    let bestPath = [];
+    let willBeKing = currentPiece.king;
+
+    const traverse = (r, c, path, isKing) => {
+        if (r === targetR && c === targetC) {
+            if (path.length > bestPath.length) {
+                bestPath = [...path];
+                if (isKing) willBeKing = true;
+            }
+            return;
+        }
+
+        const currentlyKing = isKing || r === 0 || r === 7;
+        const dirs = currentlyKing ? kingDirections : 
+                     (currentPiece.team === "GoodPiece" ? goodDirections : evilDirections);
+
+        for (const [dr, dc] of dirs) {
+            const jumpR = r + (dr * 2);
+            const jumpC = c + (dc * 2);
+            const isMoveValid = moves.some(m => m[0] === jumpR && m[1] === jumpC);
+            const alreadyVisited = path.some(p => p[0] === jumpR && p[1] === jumpC);
+
+            if (isMoveValid && !alreadyVisited) {
+                traverse(jumpR, jumpC, [...path, [jumpR, jumpC]], currentlyKing);
+            }
+        }
+    };
+    traverse(startR, startC, [[startR, startC]], currentPiece.king);
+    
+    return { path: bestPath, promoted: willBeKing };
+};
+
+const capturePieces = (path) => {
+
+    if (!path || path.length < 2) {
+        return pieces; 
+    }
+
+    let currentPieces = [...pieces];
+    let [prevRow, prevCol] = path[0];
+    const jumpsOnly = path.slice(1);
+    for (const [r,c] of jumpsOnly) {
+        const victimRow = (prevRow + r) / 2;
+        const victimCol = (prevCol + c) / 2;
+        currentPieces = currentPieces.filter(p => !(p.r === victimRow && p.c === victimCol));
+        prevRow = r;
+        prevCol = c;
+    }
+    return currentPieces;
+}
 
     return (
         <div className="board">
