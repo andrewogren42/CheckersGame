@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -20,27 +20,92 @@ function App() {
 
   const [pieces, setPieces] = useState(startingTiles);
   const [SideBarOpen, setSideBarOpen] = useState(false);
+  const [turn, setTurn] = useState(true);
+  const [startSeconds, setStartSeconds] = useState(600);
+  const [isDarkMode, setDarkMode] = useState(false);
+
+  const [gameId, setGameId] = useState(0);
+
+  const [gameWon, setGameWon] = useState([0, 0]);
+
+  const [redPieceCount, setRedPieceCount] = useState(12);
+  const [blackPieceCount, setBlackPieceCount] = useState(12);
+
+  const updateRedCount = (amount) => {
+    setRedPieceCount(prev => {
+      return prev - amount;
+    });
+  }
+
+  const updateBlackCount = (amount) => {
+    setBlackPieceCount(prev => {
+      return prev - amount;
+    });
+  }
+
+  const updateWins = (winner) => {
+    setGameWon(prev => {
+      const[good, evil] = prev;
+      return winner === "Good" ? [good + 1, evil] : [good, evil + 1];
+    });
+  }
+
+  const resetGame = () => {
+      setPieces(startingTiles);
+      setTurn(true);
+      setGameId(prev => prev + 1);
+      setRedPieceCount(12); 
+      setBlackPieceCount(12);
+  };
+
+  useEffect(() => {
+    if (redPieceCount <= 0){
+      updateWins("Evil");
+      resetGame();
+    } else if (blackPieceCount <= 0) {
+      updateWins("Good");
+      resetGame();
+    }
+  }, [redPieceCount, blackPieceCount])
 
   return (
-    <div>
+    <div id='App' className={isDarkMode ? "Dark" : "Light"}>
       <ScoreBoard 
         setSideBarOpen={setSideBarOpen}
+        gameWon={gameWon}
       />
       <SideBar 
         SideBarOpen={SideBarOpen}
         setSideBarOpen={setSideBarOpen}
-        setPieces={setPieces}
-        startingTiles={startingTiles}
+        startSeconds={startSeconds}
+        setStartSeconds={setStartSeconds}
+        isDarkMode={isDarkMode}
+        setDarkMode={setDarkMode}
+        resetGame={resetGame}
       />
       <PlayerInfo
         isGood={false}
+        turn={turn}
+        startSeconds={startSeconds}
+        gameId={gameId}
+        updateWins={updateWins}
+        resetGame={resetGame}
       />
       <Board
         pieces={pieces}
         setPieces={setPieces}
+        turn={turn}
+        setTurn={setTurn}
+        updateBlackCount={updateBlackCount}
+        updateRedCount={updateRedCount}
       />
       <PlayerInfo 
         isGood={true}
+        turn={turn}
+        startSeconds={startSeconds}
+        gameId={gameId}
+        updateWins={updateWins}
+        resetGame={resetGame}
       />
     </div>
   )

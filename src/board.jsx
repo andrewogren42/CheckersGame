@@ -2,7 +2,7 @@ import React, { use, useState } from "react";
 import BoardRow from "./assets/BoardRow/BoardRow";
 import "./Board.css";
 
-function Board({ pieces, setPieces}) {
+function Board({ pieces, setPieces, turn, setTurn, updateBlackCount, updateRedCount }) {
 
     const [clicked, setClicked] = useState(null);
     const [moves, setMoves] = useState([]);
@@ -20,9 +20,15 @@ function Board({ pieces, setPieces}) {
 
             const { path, promoted } = getBestPath(clicked.row, clicked.col, row, col, movingPiece);
 
-            let updatedPieces = capturePieces(path);
+            let [updatedPieces, captureCount] = capturePieces(path);
             
             const movingIdx = updatedPieces.findIndex(p => p.r === clicked.row && p.c === clicked.col);
+
+            if (movingPiece.team === 'GoodPiece') {
+                updateBlackCount(captureCount)
+            } else if (movingPiece.team === 'EvilPiece') {
+                updateRedCount(captureCount)
+            }
             
             updatedPieces[movingIdx] = { 
                 ...movingPiece, 
@@ -34,6 +40,7 @@ function Board({ pieces, setPieces}) {
             setPieces(updatedPieces);
             setClicked(null);
             setMoves([]);
+            setTurn(!turn);
         } else if (clicked && row === clicked.row && col === clicked.col) {
             setClicked(null);
             setMoves([]);
@@ -49,7 +56,7 @@ function Board({ pieces, setPieces}) {
 
     const legalMoves = (row, col, pieceIndex, isChainJump = false, visited = [], isKingNow = false) => {
 
-        if (pieceIndex === -1 || !pieces[pieceIndex]) return { possible: [], type: "none" };
+        if (pieceIndex === -1 || (pieces[pieceIndex].team === "GoodPiece" && !turn) || (pieces[pieceIndex].team === "EvilPiece" && turn) ) return { possible: [], type: "none" };
         const currPiece = pieces[pieceIndex];
         const effectivelyAKing = currPiece.king || isKingNow;
         const directions = effectivelyAKing ? kingDirections : 
@@ -133,8 +140,9 @@ const getBestPath = (startR, startC, targetR, targetC, currentPiece) => {
 const capturePieces = (path) => {
 
     if (!path || path.length < 2) {
-        return pieces; 
+        return [pieces, 0]; 
     }
+    let amount = 0
 
     let currentPieces = [...pieces];
     let [prevRow, prevCol] = path[0];
@@ -145,8 +153,9 @@ const capturePieces = (path) => {
         currentPieces = currentPieces.filter(p => !(p.r === victimRow && p.c === victimCol));
         prevRow = r;
         prevCol = c;
+        amount = amount + 1;
     }
-    return currentPieces;
+    return [currentPieces, amount];
 }
 
     return (

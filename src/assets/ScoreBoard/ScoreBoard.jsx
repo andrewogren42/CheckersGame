@@ -1,13 +1,12 @@
 import React from "react";
 import "./ScoreBoard.css";
 
-function ScoreBoard({ setSideBarOpen }) {
-
+function ScoreBoard({ setSideBarOpen, gameWon }) {
 
     return (
         <div id="topRow">
             <div className="ScoreBoard">
-                <h2>0 - 0</h2>
+                <h2>{gameWon[0]} - {gameWon[1]}</h2>
             </div>
             <button id="hamburger" onClick={() => setSideBarOpen(true)}>
                 <span></span>

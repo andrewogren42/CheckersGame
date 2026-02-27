@@ -9,6 +9,7 @@
     z-index: 5;
     display: flex;
     flex-direction: column;
+    padding-bottom: 20px;
 }
 
 #SideBar.openSeasame{
@@ -33,10 +34,16 @@
     border: 2px solid white;
     border-radius: 10px;
     margin: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .sideButton:hover{
     background-color: white;
     color: blue;
     border: 2px solid blue;
+}
+
+#Rules{
+    margin-bottom: auto;
 }
