@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import Board from './board'
-import ScoreBoard from './assets/ScoreBoard/ScoreBoard'
-import PlayerInfo from './assets/PlayerInfo/PlayerInfo'
-import SideBar from './assets/SideBar/SideBar'
+import { useEffect, useState } from 'react';
+import reactLogo from './assets/react.svg';
+import viteLogo from '/vite.svg';
+import './App.css';
+import Board from './board';
+import ScoreBoard from './assets/ScoreBoard/ScoreBoard';
+import PlayerInfo from './assets/PlayerInfo/PlayerInfo';
+import SideBar from './assets/SideBar/SideBar';
+import Rules from './assets/Rules/Rules';
 
 function App() {
 
@@ -36,6 +37,8 @@ function App() {
   const [movesWithoutCapture, setMovesWithoutCapture] = useState(0);
 
   const [position, setPosition] = useState([]);
+
+  const [showRules, setShowRules] = useState(false);
 
   const updateRedCount = (amount) => {
     setRedPieceCount(prev => {
@@ -80,6 +83,10 @@ function App() {
     setPosition(prev => [...prev, currPosition]);
   }
 
+  const toggleShowRules = () => {
+    setShowRules(!showRules);
+  }
+
   useEffect(() => {
     if (redPieceCount <= 0){
       updateWins("Evil");
@@ -114,6 +121,9 @@ function App() {
 
   return (
     <div id='App' className={isDarkMode ? "Dark" : "Light"}>
+      {showRules ? <Rules 
+                      toggleShowRules={toggleShowRules}
+                    /> : null }
       <ScoreBoard 
         setSideBarOpen={setSideBarOpen}
         gameWon={gameWon}
@@ -129,6 +139,7 @@ function App() {
         resetScore={resetScore}
         showMoves={showMoves}
         setShowMoves={setShowMoves}
+        toggleShowRules={toggleShowRules}
       />
       <PlayerInfo
         isGood={false}
