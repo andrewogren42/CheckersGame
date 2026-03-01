@@ -2,7 +2,12 @@ import React, { use, useState } from "react";
 import BoardRow from "./assets/BoardRow/BoardRow";
 import "./Board.css";
 
-function Board({ pieces, setPieces, turn, setTurn, updateBlackCount, updateRedCount }) {
+function Board({pieces, setPieces, turn, 
+                setTurn, updateBlackCount, 
+                updateRedCount, showMoves, 
+                setMovesWithoutCapture,
+                addToPosition, setPosition
+            }) {
 
     const [clicked, setClicked] = useState(null);
     const [moves, setMoves] = useState([]);
@@ -17,25 +22,34 @@ function Board({ pieces, setPieces, turn, setTurn, updateBlackCount, updateRedCo
 
         if (clicked && selectedMove) {
             const movingPiece = pieces.find(p => p.r === clicked.row && p.c === clicked.col);
-
             const { path, promoted } = getBestPath(clicked.row, clicked.col, row, col, movingPiece);
 
             let [updatedPieces, captureCount] = capturePieces(path);
-            
+
             const movingIdx = updatedPieces.findIndex(p => p.r === clicked.row && p.c === clicked.col);
 
             if (movingPiece.team === 'GoodPiece') {
-                updateBlackCount(captureCount)
+                updateBlackCount(captureCount);
             } else if (movingPiece.team === 'EvilPiece') {
-                updateRedCount(captureCount)
+                updateRedCount(captureCount);
             }
             
             updatedPieces[movingIdx] = { 
                 ...movingPiece, 
                 r: row, 
                 c: col, 
-                king: promoted || row === 0 || row === 7 
+                king: promoted || (row === 0 && movingPiece.team === "GoodPiece") || (row === 7 && movingPiece.team === "EvilPiece")
             };
+
+            const boardSnapshot = JSON.stringify(updatedPieces);
+
+            if (captureCount !== 0 || !movingPiece.king) {
+                setPosition([boardSnapshot]); 
+                setMovesWithoutCapture(0);
+            } else {
+                addToPosition(boardSnapshot); 
+                setMovesWithoutCapture(prev => prev + 1);
+            }
 
             setPieces(updatedPieces);
             setClicked(null);
@@ -117,7 +131,7 @@ const getBestPath = (startR, startC, targetR, targetC, currentPiece) => {
             return;
         }
 
-        const currentlyKing = isKing || r === 0 || r === 7;
+        const currentlyKing = isKing || (r === 0 && currentPiece.team === "GoodPiece") || (r === 7 && currentPiece.team === "EvilPiece");
         const dirs = currentlyKing ? kingDirections : 
                      (currentPiece.team === "GoodPiece" ? goodDirections : evilDirections);
 
@@ -168,6 +182,7 @@ const capturePieces = (path) => {
                     clickTile={clickTile}
                     pieces={pieces}
                     moves={moves}
+                    showMoves={showMoves}
                 />
             ))}
             

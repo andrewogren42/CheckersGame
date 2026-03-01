@@ -3,7 +3,10 @@ import "./SideBar.css";
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 
 
-function SideBar({ SideBarOpen, setSideBarOpen, setPieces, startingTiles, startSeconds, setStartSeconds, isDarkMode, setDarkMode, turn, setTurn, resetGame }) {
+function SideBar({  SideBarOpen, setSideBarOpen, startSeconds, 
+                    setStartSeconds, isDarkMode, setDarkMode, 
+                    resetGame, resetScore, showMoves, setShowMoves 
+                }) {
 
     const isSpeedGame = startSeconds === 180;
 
@@ -15,6 +18,7 @@ function SideBar({ SideBarOpen, setSideBarOpen, setPieces, startingTiles, startS
         <div id="SideBar" className={SideBarOpen ? "openSeasame" : ""}>
             <button id="closeButton" onClick={() => setSideBarOpen(false)}>X</button>
             <button id="NewGame" className="sideButton" onClick={resetGame}>New Game</button>
+            <button id="ResetScore" className="sideButton" onClick={resetScore}>Reset Score</button>
             <button id="Rules" className="sideButton">Rules</button>
             <ToggleSwitch 
                 id="DarkModeSwitch"
@@ -29,6 +33,13 @@ function SideBar({ SideBarOpen, setSideBarOpen, setPieces, startingTiles, startS
                 label="Speed Game"
                 state={isSpeedGame}
                 setState={handleSpeedToggle}
+            />
+            <ToggleSwitch 
+                id="ShowLegalMoves"
+                className="Switch"
+                label="Legal Moves"
+                state={showMoves}
+                setState={setShowMoves}
             />
         </div>
     )

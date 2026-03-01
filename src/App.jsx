@@ -26,10 +26,16 @@ function App() {
 
   const [gameId, setGameId] = useState(0);
 
-  const [gameWon, setGameWon] = useState([0, 0]);
+  const [gameWon, setGameWon] = useState([0, 0, 0]);
 
   const [redPieceCount, setRedPieceCount] = useState(12);
   const [blackPieceCount, setBlackPieceCount] = useState(12);
+
+  const [showMoves, setShowMoves] = useState(true);
+
+  const [movesWithoutCapture, setMovesWithoutCapture] = useState(0);
+
+  const [position, setPosition] = useState([]);
 
   const updateRedCount = (amount) => {
     setRedPieceCount(prev => {
@@ -45,9 +51,19 @@ function App() {
 
   const updateWins = (winner) => {
     setGameWon(prev => {
-      const[good, evil] = prev;
-      return winner === "Good" ? [good + 1, evil] : [good, evil + 1];
+      const[good, evil, tie] = prev;
+      if (winner === "Good") {
+        return [good + 1, evil, tie];
+      } else if (winner === "Evil") {
+        return [good, evil + 1, tie];
+      } else {
+        return [good, evil, tie + 1];
+      }
     });
+  }
+
+  const resetScore = () => {
+    setGameWon([0, 0, 0]);
   }
 
   const resetGame = () => {
@@ -56,7 +72,13 @@ function App() {
       setGameId(prev => prev + 1);
       setRedPieceCount(12); 
       setBlackPieceCount(12);
+      setMovesWithoutCapture(0);
+      setPosition([]);
   };
+
+  const addToPosition = (currPosition) => {
+    setPosition(prev => [...prev, currPosition]);
+  }
 
   useEffect(() => {
     if (redPieceCount <= 0){
@@ -67,6 +89,28 @@ function App() {
       resetGame();
     }
   }, [redPieceCount, blackPieceCount])
+
+  useEffect(() => {
+    if (movesWithoutCapture === 80) {
+      updateWins("Tie");
+      resetGame();
+    }
+  }, [movesWithoutCapture])
+
+  useEffect(() => {
+    if (position.length < 3) {
+      return;
+    }
+
+    const currBoard = position[position.length - 1];
+
+    const occurrences = position.filter(p => p === currBoard).length;
+    console.log(occurrences, position, movesWithoutCapture);
+    if (occurrences >= 3) {
+      updateWins("Tie");
+      resetGame();
+    }
+  }, [position])
 
   return (
     <div id='App' className={isDarkMode ? "Dark" : "Light"}>
@@ -82,6 +126,9 @@ function App() {
         isDarkMode={isDarkMode}
         setDarkMode={setDarkMode}
         resetGame={resetGame}
+        resetScore={resetScore}
+        showMoves={showMoves}
+        setShowMoves={setShowMoves}
       />
       <PlayerInfo
         isGood={false}
@@ -98,6 +145,10 @@ function App() {
         setTurn={setTurn}
         updateBlackCount={updateBlackCount}
         updateRedCount={updateRedCount}
+        showMoves={showMoves}
+        setMovesWithoutCapture={setMovesWithoutCapture}
+        addToPosition={addToPosition}
+        setPosition={setPosition}
       />
       <PlayerInfo 
         isGood={true}

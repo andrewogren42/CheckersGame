@@ -6,7 +6,7 @@ function ScoreBoard({ setSideBarOpen, gameWon }) {
     return (
         <div id="topRow">
             <div className="ScoreBoard">
-                <h2>{gameWon[0]} - {gameWon[1]}</h2>
+                <h2>{gameWon[0]} - {gameWon[1]} {gameWon[2] > 0 ? "- " + gameWon[2] : ""}</h2>
             </div>
             <button id="hamburger" onClick={() => setSideBarOpen(true)}>
                 <span></span>
