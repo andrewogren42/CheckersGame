@@ -3,6 +3,8 @@ html, body {
   padding: 0;
   width: 100%;
   height: 100%;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
 }
 
 /* Ensure the React root also fills the space */
@@ -16,8 +18,9 @@ html, body {
   padding: 50px 0px 10px 0px;
 }
 .Dark{
-  background-color: #083d3b;
+  background: linear-gradient(to left top,#010d1f, #0b268a);
+  color: #c1c1c9;
 }
 .Light{
-  background-color: lightblue;
+  background: linear-gradient(to left top,#0b268a, #49c5de);
 }

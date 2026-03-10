@@ -1,7 +1,7 @@
 import React from "react";
 import "./ScoreBoard.css";
 
-function ScoreBoard({ setSideBarOpen, gameWon }) {
+function ScoreBoard({ setSideBarOpen, gameWon, isDarkMode }) {
 
     return (
         <div id="topRow">

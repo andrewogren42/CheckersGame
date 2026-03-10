@@ -1,4 +1,4 @@
-import React, { use, useState } from "react";
+import React, { use, useState, useEffect } from "react";
 import BoardRow from "./assets/BoardRow/BoardRow";
 import "./Board.css";
 
@@ -6,7 +6,8 @@ function Board({pieces, setPieces, turn,
                 setTurn, updateBlackCount, 
                 updateRedCount, showMoves, 
                 setMovesWithoutCapture,
-                addToPosition, setPosition
+                addToPosition, setPosition,
+                aiType
             }) {
 
     const [clicked, setClicked] = useState(null);
@@ -118,59 +119,125 @@ function Board({pieces, setPieces, turn,
         return jumps.length > 0 ? { possible: jumps, type: "jump"} : { possible: slides, type: "slide"};
     };
 
-const getBestPath = (startR, startC, targetR, targetC, currentPiece) => {
-    let bestPath = [];
-    let willBeKing = currentPiece.king;
+    const getBestPath = (startR, startC, targetR, targetC, currentPiece, moveList=moves) => {
+        let bestPath = [];
+        let willBeKing = currentPiece.king;
 
-    const traverse = (r, c, path, isKing) => {
-        if (r === targetR && c === targetC) {
-            if (path.length > bestPath.length) {
-                bestPath = [...path];
-                if (isKing) willBeKing = true;
+        const traverse = (r, c, path, isKing) => {
+            if (r === targetR && c === targetC) {
+                if (path.length > bestPath.length) {
+                    bestPath = [...path];
+                    if (isKing) willBeKing = true;
+                }
+                return;
             }
-            return;
-        }
 
-        const currentlyKing = isKing || (r === 0 && currentPiece.team === "GoodPiece") || (r === 7 && currentPiece.team === "EvilPiece");
-        const dirs = currentlyKing ? kingDirections : 
-                     (currentPiece.team === "GoodPiece" ? goodDirections : evilDirections);
+            const currentlyKing = isKing || (r === 0 && currentPiece.team === "GoodPiece") || (r === 7 && currentPiece.team === "EvilPiece");
+            const dirs = currentlyKing ? kingDirections : 
+                        (currentPiece.team === "GoodPiece" ? goodDirections : evilDirections);
 
-        for (const [dr, dc] of dirs) {
-            const jumpR = r + (dr * 2);
-            const jumpC = c + (dc * 2);
-            const isMoveValid = moves.some(m => m[0] === jumpR && m[1] === jumpC);
-            const alreadyVisited = path.some(p => p[0] === jumpR && p[1] === jumpC);
+            for (const [dr, dc] of dirs) {
+                const jumpR = r + (dr * 2);
+                const jumpC = c + (dc * 2);
+                const isMoveValid = moveList.some(m => m[0] === jumpR && m[1] === jumpC);
+                const alreadyVisited = path.some(p => p[0] === jumpR && p[1] === jumpC);
 
-            if (isMoveValid && !alreadyVisited) {
-                traverse(jumpR, jumpC, [...path, [jumpR, jumpC]], currentlyKing);
+                if (isMoveValid && !alreadyVisited) {
+                    traverse(jumpR, jumpC, [...path, [jumpR, jumpC]], currentlyKing);
+                }
             }
-        }
+        };
+        traverse(startR, startC, [[startR, startC]], currentPiece.king);
+        
+        return { path: bestPath, promoted: willBeKing };
     };
-    traverse(startR, startC, [[startR, startC]], currentPiece.king);
-    
-    return { path: bestPath, promoted: willBeKing };
-};
 
-const capturePieces = (path) => {
+    const capturePieces = (path) => {
 
-    if (!path || path.length < 2) {
-        return [pieces, 0]; 
+        if (!path || path.length < 2) {
+            return [pieces, 0]; 
+        }
+        let amount = 0
+
+        let currentPieces = [...pieces];
+        let [prevRow, prevCol] = path[0];
+        const jumpsOnly = path.slice(1);
+        for (const [r,c] of jumpsOnly) {
+            const victimRow = (prevRow + r) / 2;
+            const victimCol = (prevCol + c) / 2;
+            currentPieces = currentPieces.filter(p => !(p.r === victimRow && p.c === victimCol));
+            prevRow = r;
+            prevCol = c;
+            amount = amount + 1;
+        }
+        return [currentPieces, amount];
     }
-    let amount = 0
 
-    let currentPieces = [...pieces];
-    let [prevRow, prevCol] = path[0];
-    const jumpsOnly = path.slice(1);
-    for (const [r,c] of jumpsOnly) {
-        const victimRow = (prevRow + r) / 2;
-        const victimCol = (prevCol + c) / 2;
-        currentPieces = currentPieces.filter(p => !(p.r === victimRow && p.c === victimCol));
-        prevRow = r;
-        prevCol = c;
-        amount = amount + 1;
-    }
-    return [currentPieces, amount];
-}
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    const applyAIMove = (r1, c1, r2, c2) => {
+        const movingPiece = pieces.find(p => p.r === r1 && p.c === c1);
+        if (!movingPiece) return;
+
+        const pieceIndex = pieces.findIndex(p => p.r === r1 && p.c === c1);
+        const aiMoves = legalMoves(r1, c1, pieceIndex, false, [], false);
+        const aiMoveList = aiMoves.possible || [];
+
+        const { path, promoted } = getBestPath(r1, c1, r2, c2, movingPiece, aiMoveList);
+
+        let [updatedPieces, captureCount] = capturePieces(path);
+        const movingIdx = updatedPieces.findIndex(p => p.r === r1 && p.c === c1);
+
+        if (movingPiece.team === 'GoodPiece') {
+            updateBlackCount(captureCount);
+        } else if (movingPiece.team === 'EvilPiece') {
+            updateRedCount(captureCount);
+        }
+
+        updatedPieces[movingIdx] = {
+            ...movingPiece,
+            r: r2,
+            c: c2,
+            king: promoted || (r2 === 0 && movingPiece.team === "GoodPiece") || (r2 === 7 && movingPiece.team === "EvilPiece")
+        };
+
+        setPieces(updatedPieces);
+        setClicked(null);
+        setMoves([]);
+        setTurn(true);
+    };
+
+    const callAPI = async (pieces) => {
+        if (turn == true || !pieces || pieces.length === 0) {
+            return
+        } else {
+            try {
+                const res = await fetch('https://checkersapi-953613013191.us-central1.run.app/move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pieces: pieces.map(p => ({
+                        r: p.r,
+                        c: p.c,
+                        isKing: p.king,
+                        team: p.team === 'GoodPiece' ? 'good' : 'evil'
+                })),
+                ai_type : aiType
+            })
+            });
+                
+                const data = await res.json();
+                let {r1, c1, r2, c2} = data.move;
+                clickTile(r1, c1);
+                await sleep(1000);
+                applyAIMove(r1, c1, r2, c2);
+            } catch (err) {
+                console.error('API error:', err);
+            }
+    }}
+    useEffect(() => {
+        callAPI(pieces);
+    }, [turn]);
+
 
     return (
         <div className="board">
@@ -183,6 +250,7 @@ const capturePieces = (path) => {
                     pieces={pieces}
                     moves={moves}
                     showMoves={showMoves}
+                    turn={turn}
                 />
             ))}
             

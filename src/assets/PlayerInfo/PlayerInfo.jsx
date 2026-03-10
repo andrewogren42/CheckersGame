@@ -2,7 +2,7 @@ import React from "react";
 import "./PlayerInfo.css";
 import Timer from "../Timer/Timer";
 
-function PlayerInfo({ isGood, turn, startSeconds, gameId, updateWins, resetGame }) {
+function PlayerInfo({ isGood, turn, startSeconds, gameId, updateWins, resetGame, isDarkMode }) {
 
     return(
         <div className="PlayerInfo">

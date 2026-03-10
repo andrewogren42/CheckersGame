@@ -22,6 +22,7 @@ function App() {
   const [pieces, setPieces] = useState(startingTiles);
   const [SideBarOpen, setSideBarOpen] = useState(false);
   const [turn, setTurn] = useState(true);
+
   const [startSeconds, setStartSeconds] = useState(600);
   const [isDarkMode, setDarkMode] = useState(false);
 
@@ -39,6 +40,8 @@ function App() {
   const [position, setPosition] = useState([]);
 
   const [showRules, setShowRules] = useState(false);
+
+  const [aiType, setAiType] = useState("MCTS");
 
   const updateRedCount = (amount) => {
     setRedPieceCount(prev => {
@@ -112,7 +115,6 @@ function App() {
     const currBoard = position[position.length - 1];
 
     const occurrences = position.filter(p => p === currBoard).length;
-    console.log(occurrences, position, movesWithoutCapture);
     if (occurrences >= 3) {
       updateWins("Tie");
       resetGame();
@@ -127,6 +129,7 @@ function App() {
       <ScoreBoard 
         setSideBarOpen={setSideBarOpen}
         gameWon={gameWon}
+        isDarkMode={isDarkMode}
       />
       <SideBar 
         SideBarOpen={SideBarOpen}
@@ -140,6 +143,8 @@ function App() {
         showMoves={showMoves}
         setShowMoves={setShowMoves}
         toggleShowRules={toggleShowRules}
+        aiType={aiType}
+        setAiType={setAiType}
       />
       <PlayerInfo
         isGood={false}
@@ -148,6 +153,7 @@ function App() {
         gameId={gameId}
         updateWins={updateWins}
         resetGame={resetGame}
+        isDarkMode={isDarkMode}
       />
       <Board
         pieces={pieces}
@@ -160,6 +166,7 @@ function App() {
         setMovesWithoutCapture={setMovesWithoutCapture}
         addToPosition={addToPosition}
         setPosition={setPosition}
+        aiType={aiType}
       />
       <PlayerInfo 
         isGood={true}
@@ -168,6 +175,7 @@ function App() {
         gameId={gameId}
         updateWins={updateWins}
         resetGame={resetGame}
+        isDarkMode={isDarkMode}
       />
     </div>
   )

@@ -2,7 +2,7 @@ import React from "react";
 import "./BoardTile.css";
 import CheckerPiece from "../CheckerPiece/CheckerPiece";
 
-function BoardTile({row, col, clicked, clickTile, pieces, moves, showMoves }) {
+function BoardTile({row, col, clicked, clickTile, pieces, moves, showMoves, turn }) {
 
     const isDark = (row + col) % 2 === 1;
     
@@ -21,7 +21,7 @@ function BoardTile({row, col, clicked, clickTile, pieces, moves, showMoves }) {
     return (
         <button 
             className={active ? "clicked" : isDark ? "tileDark" : "tileLight"}
-            onClick={() => clickTile(row, col)}>
+            onClick={turn ? () => clickTile(row, col) : undefined}>
             <div className={pieceClass}>
                 {hasPiece?.king && <div className="star"></div> }
             </div>
