@@ -4,3 +4,23 @@
     margin: auto;
     display: flex;
 }
+
+@media screen and (max-width: 1150px) {
+    .PlayerInfo{
+      width: 400px;  
+    }
+}
+
+@media screen and (max-width: 900px){
+    .PlayerInfo{
+      width: 300px; 
+      font-size: 0.8rem; 
+    }
+}
+
+@media screen and (max-width: 700px){
+    .PlayerInfo{
+      width: 250px; 
+      font-size: 0.7rem; 
+    }
+}

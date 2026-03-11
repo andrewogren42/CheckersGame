@@ -41,9 +41,8 @@ function Timer({ isGood, turn, startSeconds, updateWins, resetGame }){
             <img    className={isGood ? "GoodTimerImage" : "EvilTimerImage"} 
                     src="/icons8-clock-30.png" 
                     alt="Timer Clock"
-                    width={40} 
-                    height={40}/>
-            <p>
+                    />
+            <p id="timerSeconds">
                 {formatTime(seconds)}
             </p>
         </div>

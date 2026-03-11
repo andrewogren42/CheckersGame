@@ -24,3 +24,16 @@ html, body {
 .Light{
   background: linear-gradient(to left top,#0b268a, #49c5de);
 }
+
+@media screen and (max-width: 1150px){
+  #BottomSpacing{
+    margin-bottom: 100px;
+  }
+}
+
+@media screen and (max-width: 900px){
+
+  #BottomSpacing{
+    margin-bottom: 200px;
+  }
+}

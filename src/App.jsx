@@ -177,6 +177,7 @@ function App() {
         resetGame={resetGame}
         isDarkMode={isDarkMode}
       />
+      <div id='BottomSpacing'></div>
     </div>
   )
 }
