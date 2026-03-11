@@ -8,8 +8,6 @@ import PlayerInfo from './assets/PlayerInfo/PlayerInfo';
 import SideBar from './assets/SideBar/SideBar';
 import Rules from './assets/Rules/Rules';
 
-function App() {
-
   const startingTiles = [ 
             { r: 0, c: 1, team: 'EvilPiece', king: false }, { r: 0, c: 3, team: 'EvilPiece', king: false }, { r: 0, c: 5, team: 'EvilPiece', king: false }, { r: 0, c: 7, team: 'EvilPiece', king: false },
             { r: 1, c: 0, team: 'EvilPiece', king: false }, { r: 1, c: 2, team: 'EvilPiece', king: false }, { r: 1, c: 4, team: 'EvilPiece', king: false }, { r: 1, c: 6, team: 'EvilPiece', king: false },
@@ -18,6 +16,8 @@ function App() {
             { r: 6, c: 1, team: 'GoodPiece', king: false }, { r: 6, c: 3, team: 'GoodPiece', king: false }, { r: 6, c: 5, team: 'GoodPiece', king: false }, { r: 6, c: 7, team: 'GoodPiece', king: false },
             { r: 7, c: 0, team: 'GoodPiece', king: false }, { r: 7, c: 2, team: 'GoodPiece', king: false }, { r: 7, c: 4, team: 'GoodPiece', king: false }, { r: 7, c: 6, team: 'GoodPiece', king: false },
                         ]
+
+function App() {
 
   const [pieces, setPieces] = useState(startingTiles);
   const [SideBarOpen, setSideBarOpen] = useState(false);
@@ -73,7 +73,7 @@ function App() {
   }
 
   const resetGame = () => {
-      setPieces(startingTiles);
+      setPieces(startingTiles.map(p => ({...p})));
       setTurn(true);
       setGameId(prev => prev + 1);
       setRedPieceCount(12); 
@@ -168,6 +168,9 @@ function App() {
         addToPosition={addToPosition}
         setPosition={setPosition}
         aiType={aiType}
+        resetGame={resetGame}
+        updateWins={updateWins}
+        gameId={gameId}
       />
       <PlayerInfo 
         isGood={true}

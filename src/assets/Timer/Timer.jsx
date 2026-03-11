@@ -25,7 +25,7 @@ function Timer({ isGood, turn, startSeconds, updateWins, resetGame }){
         return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
     };
 
-    const winner = isGood ? "Good" : "Evil";
+    const winner = isGood ? "Evil" : "Good";
 
     useEffect(() => {
         if (seconds === 0) {

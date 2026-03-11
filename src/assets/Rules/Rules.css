@@ -35,3 +35,7 @@
 #closeRules:hover{
     text-decoration: underline;
 }
+
+.RulesHeading{
+  justify-self: center;
+}

@@ -1,4 +1,4 @@
-import React, { use, useState, useEffect } from "react";
+import React, { use, useState, useEffect, useRef } from "react";
 import BoardRow from "./assets/BoardRow/BoardRow";
 import "./Board.css";
 
@@ -7,7 +7,8 @@ function Board({pieces, setPieces, turn,
                 updateRedCount, showMoves, 
                 setMovesWithoutCapture,
                 addToPosition, setPosition,
-                aiType
+                aiType, resetGame, updateWins,
+                gameId
             }) {
 
     const [clicked, setClicked] = useState(null);
@@ -51,7 +52,8 @@ function Board({pieces, setPieces, turn,
                 addToPosition(boardSnapshot); 
                 setMovesWithoutCapture(prev => prev + 1);
             }
-
+            const gameOver = checkOpponentMoves(updatedPieces) || checkInsufficentPieces(updatedPieces);
+            if (gameOver) return;
             setPieces(updatedPieces);
             setClicked(null);
             setMoves([]);
@@ -69,10 +71,10 @@ function Board({pieces, setPieces, turn,
         }
     };
 
-    const legalMoves = (row, col, pieceIndex, isChainJump = false, visited = [], isKingNow = false) => {
+    const legalMoves = (row, col, pieceIndex, isChainJump = false, visited = [], isKingNow = false, updatedPieces=pieces, skipTurnCheck = false) => {
 
-        if (pieceIndex === -1 || (pieces[pieceIndex].team === "GoodPiece" && !turn) || (pieces[pieceIndex].team === "EvilPiece" && turn) ) return { possible: [], type: "none" };
-        const currPiece = pieces[pieceIndex];
+        if (pieceIndex === -1 || (!skipTurnCheck && ((updatedPieces[pieceIndex].team === "GoodPiece" && !turn) || (updatedPieces[pieceIndex].team === "EvilPiece" && turn)))) return { possible: [], type: "none" };
+        const currPiece = updatedPieces[pieceIndex];
         const effectivelyAKing = currPiece.king || isKingNow;
         const directions = effectivelyAKing ? kingDirections : 
                      (currPiece.team === "GoodPiece" ? goodDirections : evilDirections);
@@ -89,19 +91,19 @@ function Board({pieces, setPieces, turn,
 
             if (jumpR >= 0 && jumpR < 8 &&
                 jumpC >= 0 && jumpC < 8) {
-                const victimIndex = pieces.findIndex(p => p.r === nr && p.c === nc);
-                const landIndex = pieces.findIndex(p => p.r === jumpR && p.c === jumpC);
+                const victimIndex = updatedPieces.findIndex(p => p.r === nr && p.c === nc);
+                const landIndex = updatedPieces.findIndex(p => p.r === jumpR && p.c === jumpC);
 
                 if (victimIndex !== -1 &&
                     !visited.includes(victimIndex) &&
-                    pieces[victimIndex].team !== currPiece.team &&
+                    updatedPieces[victimIndex].team !== currPiece.team &&
                     landIndex === -1) {
                         
                     const nextVisited = [...visited, victimIndex];
                     jumps.push([jumpR, jumpC]);
 
                     const willBecomeKing = (jumpR == 7 || jumpR == 0);
-                    const jumpAgain = legalMoves(jumpR, jumpC, pieceIndex, true, nextVisited, (willBecomeKing || effectivelyAKing));
+                    const jumpAgain = legalMoves(jumpR, jumpC, pieceIndex, true, nextVisited, (willBecomeKing || effectivelyAKing), updatedPieces);
 
                     if (jumpAgain.possible.length > 0) {
                         jumps.push(...jumpAgain.possible);
@@ -110,7 +112,7 @@ function Board({pieces, setPieces, turn,
             }
 
             if (!isChainJump && nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                const targetIdx = pieces.findIndex(p => p.r === nr && p.c === nc);
+                const targetIdx = updatedPieces.findIndex(p => p.r === nr && p.c === nc);
                 if (targetIdx === -1) {
                     slides.push([nr, nc]);
                 }
@@ -173,6 +175,35 @@ function Board({pieces, setPieces, turn,
         return [currentPieces, amount];
     }
 
+    const checkOpponentMoves = (updatedPieces) => {
+        const opponentTeam = turn ? 'EvilPiece' : 'GoodPiece';
+
+        for (let i = 0; i < updatedPieces.length; i++) {
+            const piece = updatedPieces[i];
+            if (piece.team !== opponentTeam) continue;
+
+            const hasMoves = legalMoves(piece.r, piece.c, i, false, [], false, updatedPieces, true);
+            // console.log('checking', piece.team, piece.r, piece.c, 'moves:', hasMoves.possible.length);
+            if (hasMoves.possible.length > 0) return;
+            
+        }
+        
+        const winner = opponentTeam === 'EvilPiece' ? 'Good' : 'Evil';
+        updateWins(winner);
+        resetGame();
+        return true;
+    }
+
+    const checkInsufficentPieces = (updatedPieces) => {
+        if (updatedPieces.length !== 2) {
+            return false;
+        } else if ((updatedPieces[0].team !== updatedPieces[1].team) && updatedPieces[0].king && updatedPieces[1].king){
+            updateWins('Tie');
+            resetGame();
+            return true;
+        } 
+    }
+
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     const applyAIMove = (r1, c1, r2, c2) => {
@@ -200,7 +231,8 @@ function Board({pieces, setPieces, turn,
             c: c2,
             king: promoted || (r2 === 0 && movingPiece.team === "GoodPiece") || (r2 === 7 && movingPiece.team === "EvilPiece")
         };
-
+        const gameOver = checkOpponentMoves(updatedPieces) || checkInsufficentPieces(updatedPieces);
+        if (gameOver) return;
         setPieces(updatedPieces);
         setClicked(null);
         setMoves([]);
@@ -210,33 +242,44 @@ function Board({pieces, setPieces, turn,
     const callAPI = async (pieces) => {
         if (turn == true || !pieces || pieces.length === 0) {
             return
-        } else {
-            try {
-                const res = await fetch('https://checkersapi-953613013191.us-central1.run.app/move', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pieces: pieces.map(p => ({
-                        r: p.r,
-                        c: p.c,
-                        isKing: p.king,
-                        team: p.team === 'GoodPiece' ? 'good' : 'evil'
-                })),
-                ai_type : aiType
-            })
-            });
-                
-                const data = await res.json();
-                let {r1, c1, r2, c2} = data.move;
-                clickTile(r1, c1);
-                await sleep(1000);
-                applyAIMove(r1, c1, r2, c2);
-            } catch (err) {
-                console.error('API error:', err);
+        } 
+        try {
+            const res = await fetch('https://checkersapi-953613013191.us-central1.run.app/move', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pieces: pieces.map(p => ({
+                    r: p.r,
+                    c: p.c,
+                    isKing: p.king,
+                    team: p.team === 'GoodPiece' ? 'good' : 'evil'
+            })),
+            ai_type : aiType
+        })
+        });
+            
+            const data = await res.json();
+            if (data.error) {
+            console.error('API error:', data.error);
+            return;
             }
-    }}
+            let {r1, c1, r2, c2} = data.move;
+            clickTile(r1, c1);
+            await sleep(1000);
+            applyAIMove(r1, c1, r2, c2);
+        } catch (err) {
+            console.error('API error:', err);
+        }
+    }
+
+    const lastGameIdRef = useRef(gameId);
+
     useEffect(() => {
+        if (gameId !== lastGameIdRef.current) {
+            lastGameIdRef.current = gameId;
+            return;
+        }
         callAPI(pieces);
-    }, [turn]);
+    }, [turn, gameId]);
 
 
     return (
