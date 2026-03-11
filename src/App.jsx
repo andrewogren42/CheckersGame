@@ -146,6 +146,7 @@ function App() {
         aiType={aiType}
         setAiType={setAiType}
       />
+      <div id='TopSpacing'></div>
       <PlayerInfo
         isGood={false}
         turn={turn}

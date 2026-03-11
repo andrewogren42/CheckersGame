@@ -26,20 +26,26 @@ html, body {
 }
 
 @media screen and (max-width: 1150px){
+  #TopSpacing{
+    margin-bottom: 55px;
+  }
   #BottomSpacing{
-    margin-bottom: 100px;
+    margin-bottom: 55px;
   }
 }
 
 @media screen and (max-width: 900px){
 
   #BottomSpacing{
-    margin-bottom: 200px;
+    margin-bottom: 160px;
   }
 }
 
 @media screen and (max-width: 700px){
+  #TopSpacing{
+    margin-bottom: 70px;
+  }
   #BottomSpacing{
-    margin-bottom: 300px;
+    margin-bottom: 350px;
   }
 }
