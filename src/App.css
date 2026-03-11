@@ -37,3 +37,9 @@ html, body {
     margin-bottom: 200px;
   }
 }
+
+@media screen and (max-width: 700px){
+  #BottomSpacing{
+    margin-bottom: 300px;
+  }
+}
