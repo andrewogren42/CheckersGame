@@ -6,7 +6,8 @@ import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 function SideBar({  SideBarOpen, setSideBarOpen, startSeconds, 
                     setStartSeconds, isDarkMode, setDarkMode, 
                     resetGame, resetScore, showMoves, setShowMoves,
-                     toggleShowRules, aiType, setAiType
+                    toggleShowRules, aiType, setAiType, isAllKings,
+                    setIsAllKings
                 }) {
 
     const isSpeedGame = startSeconds === 180;
@@ -40,6 +41,13 @@ function SideBar({  SideBarOpen, setSideBarOpen, startSeconds,
             />
 
             <h2 id="GameSettings">Game Settings</h2>
+            <ToggleSwitch 
+                id="AllKingsSwitch"
+                className="Switch"
+                label="All Kings"
+                state={isAllKings}
+                setState={setIsAllKings}
+            />
             <ToggleSwitch 
                 id="DarkModeSwitch"
                 className="Switch"
